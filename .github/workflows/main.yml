@@ -1,0 +1,29 @@
+name: Employee Churn Prediction CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup_python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas scikit-learn joblib fastapi uvicorn streamlit xgboost
+        # pip install lightgbm catboost # Optional, if needed
+
+    - name: Train Model (Test Run)
+      run: |
+        python churn_prediction.py
