@@ -18,6 +18,7 @@ This project implements an end-to-end ML pipeline that:
 EmployeeChurnPrediction/
 │
 ├── HR_Dataset.csv                    # Training data (15,000 employee records)
+├── HR_Dataset_test.csv               # Test data for batch prediction
 ├── best_churn_model.pkl              # Saved best model (generated after training)
 │
 ├── churn_prediction.py               # Main training script
@@ -147,6 +148,7 @@ python -m streamlit run EmployeeChurnPred.py
 **Features:**
 - Input employee details via sliders and dropdowns
 - Click "Predict Churn" for instant results
+- **Batch Prediction**: Upload `HR_Dataset_test.csv` to predict for multiple employees at once.
 - Visual feedback (success/error messages)
 
 ## 🐳 Docker Deployment
