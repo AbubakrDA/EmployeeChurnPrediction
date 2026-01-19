@@ -1,31 +1,26 @@
+# Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+# Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies if needed
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Copy the requirements file into the container
+COPY requirements.txt .
 
-# Install Python dependencies
-# Explicitly installing libraries used in the project
-RUN pip install --no-cache-dir \
-    pandas \
-    scikit-learn \
-    joblib \
-    fastapi \
-    uvicorn \
-    streamlit \
-    xgboost \
-    pydantic
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copy the rest of the application code
 COPY . .
 
-# Expose ports for API (8000) and Streamlit (8501)
-EXPOSE 8000
-EXPOSE 8501
+# Expose ports for FastAPI (8000) and Streamlit (8501)
+EXPOSE 8000 8501
 
-# Default command: Run API
-# You can override this to run Streamlit: "streamlit", "run", "EmployeeChurnPred.py"
-CMD ["uvicorn", "employeechurnFastapi:app", "--host", "0.0.0.0", "--port", "8000"]
+# Create a startup script to run both services
+RUN echo '#!/bin/bash\n\
+uvicorn employeechurnFastapi:app --host 0.0.0.0 --port 8000 &\n\
+streamlit run EmployeeChurnPred.py --server.port 8501 --server.address 0.0.0.0\n\
+' > start.sh && chmod +x start.sh
+
+# Run the startup script
+CMD ["./start.sh"]

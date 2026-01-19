@@ -3,8 +3,8 @@ scikit-learn
 joblib
 fastapi
 uvicorn
+pydantic
 streamlit
 xgboost
-lightgbm
-catboost
-pydantic
+matplotlib
+seaborn
