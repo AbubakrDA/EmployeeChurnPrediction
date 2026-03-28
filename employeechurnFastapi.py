@@ -1,11 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
 import pandas as pd
-import uvicorn
 
-# Define Input Schema
-class EmployeeInput(BaseModel):
+app = FastAPI(title="Employee Churn Prediction API")
+
+# Load the saved model pipeline
+model = joblib.load('churn_model.joblib')
+
+class EmployeeData(BaseModel):
     satisfaction_level: float
     last_evaluation: float
     number_project: int
@@ -13,46 +16,37 @@ class EmployeeInput(BaseModel):
     time_spend_company: int
     Work_accident: int
     promotion_last_5years: int
-    Departments: str
+    department: str
     salary: str
 
-app = FastAPI(title="Employee Churn Prediction API")
-
-# Load Model
-MODEL_PATH = "best_churn_model.pkl"
-try:
-    model = joblib.load(MODEL_PATH)
-    print("Model loaded successfully.")
-except Exception as e:
-    model = None
-    print(f"Error loading model: {e}")
+@app.post("/predict")
+def predict_churn(data: EmployeeData):
+    # Convert input data to DataFrame
+    input_df = pd.DataFrame([{
+        'satisfaction_level': data.satisfaction_level,
+        'last_evaluation': data.last_evaluation,
+        'number_project': data.number_project,
+        'average_montly_hours': data.average_montly_hours,
+        'time_spend_company': data.time_spend_company,
+        'Work_accident': data.Work_accident,
+        'promotion_last_5years': data.promotion_last_5years,
+        'Departments ': data.department,  # Match the trailing space in the model
+        'salary': data.salary
+    }])
+    
+    # Make prediction
+    prediction = model.predict(input_df)
+    probability = model.predict_proba(input_df)[:, 1]
+    
+    return {
+        "churn_prediction": int(prediction[0]),
+        "churn_probability": float(probability[0])
+    }
 
 @app.get("/")
-def home():
-    return {"message": "Welcome to Employee Churn Prediction API"}
-
-@app.post("/predict")
-def predict_churn(input_data: EmployeeInput):
-    if not model:
-        raise HTTPException(status_code=500, detail="Model could not be loaded.")
-    
-    try:
-        # Convert input to DataFrame
-        data = pd.DataFrame([input_data.dict()])
-        
-        # Predict
-        prediction = model.predict(data)[0]
-        prob = model.predict_proba(data)[0][1] if hasattr(model, "predict_proba") else None
-        
-        result = "Left" if prediction == 1 else "Stayed"
-        
-        return {
-            "prediction_label": result,
-            "prediction_score": int(prediction),
-            "probability_churn": float(prob) if prob is not None else "N/A"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def read_root():
+    return {"message": "Welcome to the Employee Churn Prediction API"}
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

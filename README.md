@@ -1,6 +1,6 @@
 # 🎯 Employee Churn Prediction
 
-A complete machine learning solution for predicting employee churn with a FastAPI backend and Streamlit frontend. This project uses multiple ML algorithms to predict whether an employee is likely to leave the company based on various factors.
+This project provides a complete machine learning pipeline for predicting employee churn, including data preprocessing, model training, evaluation, and deployment via FastAPI and Streamlit.
 
 ## 📊 Project Overview
 
@@ -95,20 +95,12 @@ EmployeeChurnPrediction/
 
 ## 🛠️ Installation
 
-### Prerequisites
-- Python 3.9+ (Python 3.14 may have compatibility issues with some libraries)
-- pip package manager
+### Local Setup
 
-### Step 1: Clone the Repository
-```bash
-git clone <your-repo-url>
-cd EmployeeChurnPrediction
-```
-
-### Step 2: Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+1. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 **Note:** If `catboost` or `lightgbm` fail to install (common on Python 3.14), the project will still work with RandomForest and XGBoost.
 
@@ -156,15 +148,6 @@ curl -X POST "http://127.0.0.1:8000/predict" \
     "Departments": "sales",
     "salary": "low"
   }'
-```
-
-**Response:**
-```json
-{
-  "prediction_label": "Left",
-  "prediction_score": 1,
-  "probability_churn": 0.95
-}
 ```
 
 ### 3. Run the Streamlit App
@@ -265,38 +248,6 @@ Verify all imports and syntax:
 python verify_imports.py
 ```
 
-## 📖 API Endpoints
-
-### `GET /`
-Returns welcome message
-
-### `POST /predict`
-Predicts employee churn
-
-**Request Body:**
-```json
-{
-  "satisfaction_level": 0.5,
-  "last_evaluation": 0.7,
-  "number_project": 3,
-  "average_montly_hours": 150,
-  "time_spend_company": 3,
-  "Work_accident": 0,
-  "promotion_last_5years": 0,
-  "Departments": "sales",
-  "salary": "medium"
-}
-```
-
-**Response:**
-```json
-{
-  "prediction_label": "Stayed",
-  "prediction_score": 0,
-  "probability_churn": 0.05
-}
-```
-
 ## 🛡️ Error Handling
 
 - Missing model file: Returns 500 error with clear message
@@ -309,25 +260,11 @@ Predicts employee churn
 - [ ] Implement model retraining endpoint
 - [ ] Add authentication to API
 - [ ] Create prediction history dashboard
-- [ ] Add A/B testing for multiple models
-- [ ] Implement real-time monitoring
 
 ## 📝 License
 
 This project is open source and available under the MIT License.
 
-## 👥 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📧 Contact
-
-For questions or support, please open an issue on GitHub.
-
 ---
 
-**Built with:** Python, scikit-learn, FastAPI, Streamlit, Docker
+**Built with:** Python, scikit-learn, FastAPI, Streamlit, Docker, MLflow
