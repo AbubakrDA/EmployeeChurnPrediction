@@ -1,5 +1,7 @@
 import pandas as pd
 import joblib
+import mlflow
+import mlflow.sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -75,6 +77,9 @@ def main():
     print(f"Training set size: {X_train.shape[0]}")
     print(f"Test set size: {X_test.shape[0]}")
 
+    # Set MLflow experiment
+    mlflow.set_experiment("Employee_Churn_Prediction")
+
     # 7. Train and Evaluate each Model
     if not models_available:
         print("No models available to train.")
@@ -87,34 +92,48 @@ def main():
     for name, model in models_available.items():
         print(f"\nTraining {name}...")
         
-        pipeline = Pipeline(steps=[
-            ('preprocessor', preprocessor),
-            ('classifier', model)
-        ])
-        
-        try:
-            pipeline.fit(X_train, y_train)
+        with mlflow.start_run(run_name=name):
+            pipeline = Pipeline(steps=[
+                ('preprocessor', preprocessor),
+                ('classifier', model)
+            ])
             
-            print(f"Evaluating {name}...")
-            y_pred = pipeline.predict(X_test)
-            
-            acc = accuracy_score(y_test, y_pred)
-            prec = precision_score(y_test, y_pred)
-            rec = recall_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred)
-            
-            print(f"  Accuracy:  {acc:.4f}")
-            print(f"  Precision: {prec:.4f}")
-            print(f"  Recall:    {rec:.4f}")
-            print(f"  F1 Score:  {f1:.4f}")
-            
-            if acc > best_accuracy:
-                best_accuracy = acc
-                best_model = pipeline
-                best_model_name = name
+            try:
+                # Log model parameters automatically if possible, otherwise manual
+                mlflow.log_param("model_type", name)
+                
+                pipeline.fit(X_train, y_train)
+                
+                print(f"Evaluating {name}...")
+                y_pred = pipeline.predict(X_test)
+                
+                acc = accuracy_score(y_test, y_pred)
+                prec = precision_score(y_test, y_pred)
+                rec = recall_score(y_test, y_pred)
+                f1 = f1_score(y_test, y_pred)
+                
+                print(f"  Accuracy:  {acc:.4f}")
+                print(f"  Precision: {prec:.4f}")
+                print(f"  Recall:    {rec:.4f}")
+                print(f"  F1 Score:  {f1:.4f}")
+                
+                # Log metrics to MLflow
+                mlflow.log_metric("accuracy", acc)
+                mlflow.log_metric("precision", prec)
+                mlflow.log_metric("recall", rec)
+                mlflow.log_metric("f1_score", f1)
+                
+                # Log the model
+                mlflow.sklearn.log_model(pipeline, "model")
+                
+                if acc > best_accuracy:
+                    best_accuracy = acc
+                    best_model = pipeline
+                    best_model_name = name
 
-        except Exception as e:
-            print(f"Failed to train/evaluate {name}: {e}")
+            except Exception as e:
+                print(f"Failed to train/evaluate {name}: {e}")
+                mlflow.log_param("error", str(e))
 
     # 8. Save Best Model
     if best_model:
@@ -122,6 +141,12 @@ def main():
         joblib.dump(best_model, model_filename)
         print(f"\nBest model was {best_model_name} with accuracy {best_accuracy:.4f}.")
         print(f"Model saved to {model_filename}")
+
+        # Log best model info in a parent run or tag
+        with mlflow.start_run(run_name="Best_Model_Summary"):
+            mlflow.log_param("best_model_name", best_model_name)
+            mlflow.log_metric("best_accuracy", best_accuracy)
+            mlflow.sklearn.log_model(best_model, "best_model_artifact")
 
         # 9. Test Sample Prediction
         print("\n--- Testing Sample Prediction ---")

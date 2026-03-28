@@ -1,0 +1,9 @@
+name: Employee_Churn_Prediction
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_path: {type: str, default: "HR_Dataset.csv"}
+    command: "python churn_prediction.py"

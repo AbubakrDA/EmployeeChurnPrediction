@@ -12,6 +12,38 @@ This project implements an end-to-end ML pipeline that:
 
 **Best Model Performance:** RandomForest with **98.87% accuracy**
 
+## 🏗️ Project Architecture
+
+The following diagram illustrates the high-level architecture of the Employee Churn Prediction system:
+
+```mermaid
+graph TD
+    A[HR Dataset / CSV Upload] -->|Data| B(ML Training Pipeline)
+    B -->|Trained Model| C[best_churn_model.pkl]
+    C -->|Load Model| D{Backend API - FastAPI}
+    C -->|Load Model| E{Frontend UI - Streamlit}
+    
+    subgraph "Containerized Services (Docker)"
+        D
+        E
+    subgraph "Application Logic"
+        B
+    end
+    end
+
+    User((User/Client)) -->|REST Requests| D
+    User -->|Web Interaction| E
+    D -->|JSON Response| User
+    E -->|Visual Results| User
+```
+
+### Core Components:
+1.  **Data Source**: Historical HR data containing employee attributes and churn status.
+2.  **ML Pipeline**: Scikit-learn based training script (`churn_prediction.py`) that pre-processes data and trains the best model.
+3.  **Model Storage**: The serialized `best_churn_model.pkl` file, used by both API and UI.
+4.  **FastAPI Backend**: Provides high-performance REST endpoints for programmatic access to the model (`Fastapi.py`).
+5.  **Streamlit Frontend**: An interactive dashboard for easy human-model interaction (`EmployeeChurnPred.py`).
+
 ## 📁 Project Structure
 
 ```
@@ -22,7 +54,7 @@ EmployeeChurnPrediction/
 ├── best_churn_model.pkl              # Saved best model (generated after training)
 │
 ├── churn_prediction.py               # Main training script
-├── employeechurnFastapi.py           # FastAPI backend
+├── Fastapi.py                        # FastAPI backend
 ├── EmployeeChurnPred.py              # Streamlit frontend
 ├── verify_imports.py                 # Import validation script
 │
@@ -101,7 +133,7 @@ python churn_prediction.py
 Start the FastAPI backend server:
 
 ```bash
-python -m uvicorn employeechurnFastapi:app --reload
+python -m uvicorn Fastapi:app --reload
 ```
 
 **Access Points:**
@@ -167,6 +199,30 @@ docker run -p 8000:8000 employee-churn-app
 ```bash
 docker run -p 8501:8501 employee-churn-app streamlit run EmployeeChurnPred.py
 ```
+
+### 🧪 Experiment Tracking with MLflow (New)
+
+The project now includes MLflow for tracking training runs, model parameters, and performance metrics.
+
+**To view experiments:**
+1. Run the training script: `python churn_prediction.py`
+2. Start the MLflow UI: `mlflow ui` (or use Docker Compose)
+3. Access the UI at: `http://localhost:5000`
+
+### 🛠️ Using Docker Compose (Recommended)
+
+The easiest way to run both the API and the UI simultaneously is using Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+**Services will be available at:**
+- **API**: `http://localhost:8000`
+- **Frontend**: `http://localhost:8501`
+- **MLflow UI**: `http://localhost:5000`
+
+Docker Compose ensures the API is healthy before starting the UI service.
 
 ## 📊 Dataset Features
 
